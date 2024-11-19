@@ -1,70 +1,122 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Button, StyleSheet, Dimensions, ScrollView } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+import MapViewDirections from 'react-native-maps-directions';
+import dummy from './dummy';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const { width, height } = Dimensions.get('window');
+const LATITUDE_DELTA = 0.0922;
+const LONGITUDE_DELTA = LATITUDE_DELTA * (width / height);
+const GOOGLE_MAPS_APIKEY = 'GOOGLE_MAPS_APIKEYU'; 
 
-export default function HomeScreen() {
+
+const HomeScreen = () => {
+  const markers = dummy.dummy_DATA;
+  const [selectedRange, setSelectedRange] = useState([]); // Default to the first 10 markers
+  const origin =    { "latitude": 47.1486932, "longitude": -122.3886314 }
+  const [showConnections, setShowConnections] = useState(false); // State to control connections visibility
+
+  const handleRangeSelect = (start, end) => {
+    setShowConnections(true)
+    setSelectedRange([start, end]);
+  };
+
+  const displayedMarkers = markers.slice(selectedRange[0], selectedRange[1]);
+  const rangeSize = 10; // Size of each range
+  const ranges = [];
+  for (let i = 0; i < markers.length; i += rangeSize) {
+    ranges.push([i, Math.min(i + rangeSize, markers.length)]);
+  }
+
+  const resetSelection = () => {
+    setSelectedRange([]); 
+    setShowConnections(false)
+  };
+console.log('ss',selectedRange);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={styles.container}>
+    
+
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: origin.latitude,
+          longitude: origin.longitude,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        }}
+      >
+        {/* User Marker */}
+        <Marker
+          coordinate={{ latitude: origin.latitude, longitude: origin.longitude }}
+          title="User  Location"
+          pinColor="blue" // User marker color
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+
+        {/* Location Markers */}
+        {displayedMarkers.map((marker, index) => (
+          <Marker
+            key={index}
+            coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
+            title={`Marker ${index + selectedRange[0] + 1}`}
+            pinColor="red" // Location marker color
+          />
+        ))}
+
+        {/* Show Directions from User to the first marker in the selected range */}
+        { showConnections && (
+          <MapViewDirections
+            origin={origin}
+            destination={displayedMarkers[0]} // Connect to the first marker in the selected range
+            waypoints={displayedMarkers.slice(1).map(marker => ({
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+            }))}
+            apikey={GOOGLE_MAPS_APIKEY}
+            strokeWidth={3}
+            strokeColor="hotpink"
+            optimizeWaypoints={true}
+            onReady={result => {
+              console.log(`Distance: ${result.distance} km`);
+              console.log(`Duration: ${result.duration} min.`);
+            }}
+            onError={errorMessage => {
+              console.error(errorMessage);
+            }}
+          />
+        )}
+      </MapView>
+      <ScrollView horizontal style={styles.tabContainer}>
+        {ranges.map((range, index) => (
+          <Button
+            key={index}
+            title={`${range[0] + 1} to ${range[1]}`}
+            onPress={() => handleRangeSelect(range[0], range[1])}
+          />
+        ))}
+        <Button title="Reset" onPress={resetSelection} />
+      </ScrollView>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  tabContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+    // padding: 10,
+    marginHorizontal:20,
+    backgroundColor: 'white',
+    position:'absolute',
+    bottom:0,
+    alignSelf:'center'
   },
 });
+
+export default HomeScreen;
