@@ -17,14 +17,11 @@
     { "latitude": 47.2941241, "longitude": -122.2149142 },
     { "latitude": 47.3017207, "longitude": -122.240719 },
     { "latitude": 47.3, "longitude": -122.31 }, 
-    {
-        "latitude": 47.2975966, "longitude": -122.3174522
-    },
+    {"latitude": 47.2975966, "longitude": -122.3174522},
     { "latitude": 47.5486932, "longitude": -122.3886314 },
     { "latitude": 38.8841124, "longitude": -76.9914929 },
     { "latitude": 47.3013972, "longitude": -122.3127356 },
     { "latitude": 47.2957488, "longitude": -122.3815741 },
-
     { "latitude": 47.3015209, "longitude": -122.3223785 },
     { "latitude": 47.5396345, "longitude": -122.3199401 },
     { "latitude": 47.2926512, "longitude": -122.3359646 },
